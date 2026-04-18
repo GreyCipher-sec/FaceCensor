@@ -1,34 +1,6 @@
 # face_censor.py
 
-A command-line tool to automatically detect and censor faces in images, video files, and live webcam feeds using OpenCV. Supports three censor effects — Gaussian blur, pixelation, and solid black box — all switchable at runtime during webcam mode.
-
----
-
-## Features
-
-- **Three input modes** — static images, video files, and live webcam
-- **Three censor effects** — blur, pixelate, blackbox (switchable on the fly in webcam mode)
-- **Two face detectors** — OpenCV DNN (ResNet SSD, recommended) with automatic fallback to Haar Cascade
-- **Smart output naming** — automatically appends `_censored` to the filename if no output path is given
-- **Progress reporting** for video files (every 30 frames)
-- **Live HUD overlay** in webcam mode showing current effect and detected face count
-- **Padded bounding boxes** — each detected face region is slightly expanded before censoring to avoid edge clipping
-- Zero external API calls — everything runs locally
-
----
-
-## Requirements
-
-- Python 3.7+
-- opencv-contrib-python (not `opencv-python` — the contrib build is required for webcam display)
-- numpy
-- matplotlib (used for the webcam live preview window)
-
-Install with:
-
-```bash
-pip install opencv-contrib-python numpy matplotlib
-```
+A command-line tool to automatically detect and censor faces in images, video files, and live webcam feeds using OpenCV. Supports three censor effects, Gaussian blur, pixelation, and solid black box, all switchable at runtime during webcam mode.
 
 ---
 
@@ -43,9 +15,37 @@ models/              # Created automatically on --download-models
 
 ---
 
+## Features
+
+- **Three input modes**: static images, video files, and live webcam
+- **Three censor effects**: blur, pixelate, blackbox (switchable on the fly in webcam mode)
+- **Two face detectors**: OpenCV DNN (ResNet SSD, recommended) with automatic fallback to Haar Cascade
+- **Smart output naming**: automatically appends `_censored` to the filename if no output path is given
+- **Progress reporting** for video files (every 30 frames)
+- **Live HUD overlay** in webcam mode showing current effect and detected face count
+- **Padded bounding boxes**: each detected face region is slightly expanded before censoring to avoid edge clipping
+- Zero external API calls, everything runs locally
+
+---
+
+## Requirements
+
+- Python 3.7+
+- opencv-contrib-python (not `opencv-python`, the contrib build is required for webcam display)
+- numpy
+- matplotlib (used for the webcam live preview window)
+
+Install with:
+
+```bash
+pip install opencv-contrib-python numpy matplotlib
+```
+
+---
+
 ## Setup
 
-### Step 1 — Download the DNN model (recommended, one-time)
+### Step 1 - Download the DNN model (recommended, one-time)
 
 ```bash
 python face_censor.py --download-models
@@ -145,14 +145,14 @@ The preview window is rendered via matplotlib instead of `cv2.imshow` to avoid Q
 
 ## Censor Effects
 
-### `blur` — Gaussian Blur
+### `blur` - Gaussian Blur
 Applies a strong Gaussian blur (kernel size 99×99, sigma 30) to the face region. The face is still recognisably human-shaped but all identifying detail is smoothed away. Best for a natural, professional look.
 
-### `pixelate` — Pixelation
+### `pixelate` - Pixelation
 Shrinks the face region down to a 12×12 grid and scales it back up with nearest-neighbour interpolation, producing a blocky mosaic. Classic news-broadcast style.
 
-### `blackbox` — Solid Black Rectangle
-Fills the face bounding box with solid black. Maximum coverage — no information leaks through. Useful when downstream processing (e.g. OCR, ML pipelines) needs a hard mask rather than a perceptual effect.
+### `blackbox` - Solid Black Rectangle
+Fills the face bounding box with solid black. Maximum coverage, no information leaks through. Useful when downstream processing (e.g. OCR, ML pipelines) needs a hard mask rather than a perceptual effect.
 
 All effects include a 10% padding margin around the raw detection bounding box so that hairline and chin edges are covered.
 
@@ -162,14 +162,14 @@ All effects include a 10% padding margin around the raw detection bounding box s
 
 The script picks the best available detector at startup and logs which one it is using.
 
-### OpenCV DNN — ResNet SSD (preferred)
+### OpenCV DNN - ResNet SSD (preferred)
 - Loaded when `models/deploy.prototxt` and `models/res10_300x300_ssd_iter_140000.caffemodel` are present
 - Input frame is resized to 300×300, normalised, and passed through a single-shot multibox detector
 - Returns detections with a confidence score; only those above `--confidence` (default 0.5) are kept
 - Handles angled faces, partial occlusion, and varying lighting conditions much better than Haar
 
 ### Haar Cascade (fallback)
-- Always available — uses `haarcascade_frontalface_default.xml` bundled with OpenCV
+- Always available: uses `haarcascade_frontalface_default.xml` bundled with OpenCV
 - Faster but more prone to false positives and misses on non-frontal faces
 - Uses `scaleFactor=1.1`, `minNeighbors=5`, `minSize=(30, 30)`
 
@@ -193,7 +193,7 @@ Raising the threshold above 0.5 requires the detector to be more certain before 
 python face_censor.py --input video.mp4 --effect blur --confidence 0.3
 ```
 
-Lowering the threshold catches weaker detections at the cost of more false positives. Also ensure you have the DNN model downloaded — the Haar fallback is significantly less sensitive on angled faces.
+Lowering the threshold catches weaker detections at the cost of more false positives. Also ensure you have the DNN model downloaded, the Haar fallback is significantly less sensitive on angled faces.
 
 ---
 

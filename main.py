@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import os
 import sys
@@ -7,9 +5,8 @@ import urllib.request
 import numpy as np
 import cv2
 
-# ──────────────────────────────────────────────
 # DNN model URLs & local paths
-# ──────────────────────────────────────────────
+
 MODELS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 PROTOTXT_URL = (
     "https://raw.githubusercontent.com/opencv/opencv/master/"
@@ -23,10 +20,8 @@ CAFFEMODEL_URL = (
 PROTOTXT_PATH = os.path.join(MODELS_DIR, "deploy.prototxt")
 CAFFEMODEL_PATH = os.path.join(MODELS_DIR, "res10_300x300_ssd_iter_140000.caffemodel")
 
-
-# ──────────────────────────────────────────────
 # Model downloader
-# ──────────────────────────────────────────────
+
 def download_models():
     """Download DNN face-detector model files into ./models/"""
     os.makedirs(MODELS_DIR, exist_ok=True)
@@ -44,10 +39,8 @@ def download_models():
             sys.exit(1)
     print("Done. You can now run face_censor.py without --download-models.")
 
-
-# ──────────────────────────────────────────────
 # Detector loader
-# ──────────────────────────────────────────────
+
 def load_detector():
     """Return (detector_type, detector_object)."""
     if os.path.exists(PROTOTXT_PATH) and os.path.exists(CAFFEMODEL_PATH):
@@ -61,10 +54,8 @@ def load_detector():
         cascade = cv2.CascadeClassifier(cascade_path)
         return "haar", cascade
 
-
-# ──────────────────────────────────────────────
 # Face detection
-# ──────────────────────────────────────────────
+
 def detect_faces_dnn(net, frame, confidence_threshold=0.5):
     """Return list of (x, y, w, h) using DNN detector."""
     h, w = frame.shape[:2]
@@ -86,7 +77,6 @@ def detect_faces_dnn(net, frame, confidence_threshold=0.5):
                 faces.append((x1, y1, x2 - x1, y2 - y1))
     return faces
 
-
 def detect_faces_haar(cascade, frame):
     """Return list of (x, y, w, h) using Haar Cascade."""
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -95,23 +85,19 @@ def detect_faces_haar(cascade, frame):
     )
     return list(faces) if len(faces) > 0 else []
 
-
 def detect_faces(detector_type, detector, frame):
     if detector_type == "dnn":
         return detect_faces_dnn(detector, frame)
     return detect_faces_haar(detector, frame)
 
-
-# ──────────────────────────────────────────────
 # Censor effects
-# ──────────────────────────────────────────────
+
 def apply_blur(frame, x, y, w, h, strength=99):
     """Gaussian blur on face region."""
     ksize = strength if strength % 2 == 1 else strength + 1   # must be odd
     roi = frame[y:y+h, x:x+w]
     frame[y:y+h, x:x+w] = cv2.GaussianBlur(roi, (ksize, ksize), 30)
     return frame
-
 
 def apply_pixelate(frame, x, y, w, h, blocks=12):
     """Pixelate face region by downscaling then upscaling."""
@@ -121,12 +107,10 @@ def apply_pixelate(frame, x, y, w, h, blocks=12):
     frame[y:y+h, x:x+w] = pixelated
     return frame
 
-
 def apply_blackbox(frame, x, y, w, h):
     """Solid black rectangle over face."""
     frame[y:y+h, x:x+w] = 0
     return frame
-
 
 def censor_face(frame, x, y, w, h, effect):
     """Apply chosen censor effect with a small padding margin."""
@@ -144,10 +128,8 @@ def censor_face(frame, x, y, w, h, effect):
         return apply_blackbox(frame, fx, fy, fw, fh)
     return frame
 
-
-# ──────────────────────────────────────────────
 # Overlay HUD (webcam / video preview)
-# ──────────────────────────────────────────────
+
 EFFECT_KEYS = {"b": "blur", "p": "pixelate", "k": "blackbox"}
 
 def draw_hud(frame, effect, face_count):
@@ -158,10 +140,8 @@ def draw_hud(frame, effect, face_count):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
     return frame
 
-
-# ──────────────────────────────────────────────
 # Processing modes
-# ──────────────────────────────────────────────
+
 def process_image(input_path, output_path, effect, detector_type, detector):
     frame = cv2.imread(input_path)
     if frame is None:
@@ -174,7 +154,6 @@ def process_image(input_path, output_path, effect, detector_type, detector):
 
     cv2.imwrite(output_path, frame)
     print(f"[OK] {len(faces)} face(s) censored → {output_path}")
-
 
 def process_video(input_path, output_path, effect, detector_type, detector):
     cap = cv2.VideoCapture(input_path)
@@ -208,7 +187,6 @@ def process_video(input_path, output_path, effect, detector_type, detector):
     cap.release()
     out.release()
     print(f"[OK] Done → {output_path}")
-
 
 def process_webcam(effect, detector_type, detector):
     import matplotlib.pyplot as plt
@@ -253,10 +231,8 @@ def process_webcam(effect, detector_type, detector):
     plt.show()
     cap.release()
 
-
-# ──────────────────────────────────────────────
 # CLI
-# ──────────────────────────────────────────────
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Censor faces in images, videos, or webcam.",
@@ -280,7 +256,6 @@ def parse_args():
         help="DNN confidence threshold 0–1 (default: 0.5).",
     )
     return parser.parse_args()
-
 
 def main():
     args = parse_args()
